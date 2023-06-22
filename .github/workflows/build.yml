@@ -1,0 +1,93 @@
+name: Build
+on:
+  push:
+    tags:        
+      - '*'
+  workflow_dispatch:
+jobs:
+  build-windows-i686:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./openssl
+    steps:
+    - name: Clone OpenSSL submodule
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Install MingW-W64 compiler
+      run: |
+        sudo apt update
+        sudo apt install mingw-w64 mingw-w64-tools
+    - name: Configure source
+      run: |
+        mkdir build
+        ./Configure --cross-compile-prefix=/usr/bin/i686-w64-mingw32- mingw --prefix=$(pwd)/build --openssldir=$(pwd)/build
+    - name: Compile source
+      run: make
+    - name: Copy build
+      run: make install_sw
+    - name: Upload build as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: openssl-windows-i686
+        path: openssl/build
+  build-windows-x86_64:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./openssl
+    steps:
+    - name: Clone OpenSSL submodule
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Install MingW-W64 compiler
+      run: |
+        sudo apt update
+        sudo apt install mingw-w64 mingw-w64-tools
+    - name: make build directory
+      run: |
+        mkdir build
+    - name: Configure source
+      run: ./Configure --cross-compile-prefix=/usr/bin/x86_64-w64-mingw32- mingw64 --prefix=$(pwd)/build --openssldir=$(pwd)/build
+    - name: Compile source
+      run: make
+    - name: Copy build
+      run: make install_sw
+    - name: Upload build as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: openssl-windows-x86_64
+        path: openssl/build
+  package:
+    permissions:
+      contents: write
+    needs: [build-windows-i686, build-windows-x86_64]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone build repo
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Get current version
+      id: version
+      run: echo "current=$(git describe --tags)" >> "$GITHUB_OUTPUT"
+    - name: Download all builds
+      uses: actions/download-artifact@v3
+    - name: Package builds
+      run: |
+        ls -R
+        zip -r ${{ steps.version.outputs.current }}-windows-i686-lib.zip openssl-windows-i686
+        zip -r ${{ steps.version.outputs.current }}-windows-x86_64-lib.zip openssl-windows-x86_64
+        zip -r -j ${{ steps.version.outputs.current }}-windows-i686.zip openssl-windows-i686/bin
+        zip -r -j ${{ steps.version.outputs.current }}-windows-x86_64.zip openssl-windows-x86_64/bin
+    - name: Create GitHub release with packages
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.current }}
+        files: |
+          ${{ steps.version.outputs.current }}-windows-i686-lib.zip
+          ${{ steps.version.outputs.current }}-windows-x86_64-lib.zip
+          ${{ steps.version.outputs.current }}-windows-i686.zip
+          ${{ steps.version.outputs.current }}-windows-x86_64.zip
