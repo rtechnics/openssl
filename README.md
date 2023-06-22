@@ -1,4 +1,4 @@
-# OpenSSL Windows build system powered by GitHub Actions (Test Sandbox Repo Archive)
+# OpenSSL Windows build system powered by GitHub Actions
 
 ## About
 - `.github/workflows/build.yml` - Builds the OpenSSL git submodule every time a tag is added.
