@@ -6,4 +6,4 @@
 
 ## How to configure
 1. Enable the GitHub Actions workflows
-2. A personal GitHub user token is used for the workflows to trigger each other. You will need to create a personal access token in the GitHub Developer Settings menu with the `public_repo` and `write:repo_hook` permissions. Then, add this token in your repo's Secrets and variables Settings menu as a secret with the name `PUSH_TOKEN`.
+2. A personal GitHub user token is used for the workflows to trigger each other. You will need to create a personal access token in the GitHub Developer Settings menu with the `repo` permissions. Then, add this token in your repo's Secrets and variables Settings menu as a secret with the name `PUSH_TOKEN`.
