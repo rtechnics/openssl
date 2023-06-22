@@ -7,6 +7,7 @@ on:
 jobs:
   build-windows-i686:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./openssl
@@ -34,6 +35,7 @@ jobs:
         path: openssl/build
   build-windows-x86_64:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./openssl
@@ -65,6 +67,7 @@ jobs:
       contents: write
     needs: [build-windows-i686, build-windows-x86_64]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
     - name: Clone build repo
       uses: actions/checkout@v3
