@@ -22,7 +22,7 @@ jobs:
     - name: Configure source
       run: |
         mkdir build
-        ./Configure --cross-compile-prefix=/usr/bin/i686-w64-mingw32- mingw --prefix=$(pwd)/build --openssldir='C:\\Program Files\\Common Files\\SSL\\'
+        ./Configure --cross-compile-prefix=/usr/bin/i686-w64-mingw32- mingw --prefix=$(pwd)/build --openssldir='C:\\Program Files (x86)\\Common Files\\SSL\\'
     - name: Compile source
       run: make
     - name: Copy build
