@@ -78,7 +78,7 @@ jobs:
       run: |
         Get-ChildItem -recurse -Include **.exe, **.dll | ForEach-Object {
           $filePath = $_.FullName
-          & AzureSignTool sign -kvu "${{ secrets.AZURE_CERT_KEY_VAULT }}" -kvi "${{ secrets.AZURE_CLIENT_ID }}" -kvs "${{ secrets.AZURE_CLIENT_SECRET }}" -kvc "${{ secrets.AZURE_CODE_SIGNING_CERT }}" -tr http://timestamp.digicert.com -v $filePath
+          & AzureSignTool sign -kvu "${{ secrets.AZURE_CERT_KEY_VAULT }}" -kvi "${{ secrets.AZURE_CLIENT_ID }}" -kvs "${{ secrets.AZURE_CLIENT_SECRET }}" -kvc "${{ secrets.AZURE_CODE_SIGNING_CERT }}" -kvt "${{ secrets.AZURE_TENANT_ID }}" -tr http://timestamp.digicert.com -v $filePath
         }
     - name: Upload build as artifact
       uses: actions/upload-artifact@v3
