@@ -61,10 +61,36 @@ jobs:
       with:
         name: openssl-windows-x86_64
         path: openssl/build
-  package:
+  sign-builds:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs: [build-windows-i686, build-windows-x86_64]
+    steps:
+    - name: Download all builds
+      uses: actions/download-artifact@v3
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 3.1.x
+    - name: Install AzureSignTool
+      run: dotnet tool install --global AzureSignTool
+    - name: Sign Files
+      run: |
+        Get-ChildItem -recurse -Include **.exe, **.dll | ForEach-Object {
+          $filePath = $_.FullName
+          & AzureSignTool sign -kvu "${{ secrets.AZURE_CERT_KEY_VAULT }}" -kvi "${{ secrets.AZURE_CLIENT_ID }}" -kvs "${{ secrets.AZURE_CLIENT_SECRET }}" -kvc "${{ secrets.AZURE_CODE_SIGNING_CERT }}" -tr http://timestamp.digicert.com -v $filePath
+        }
+    - name: Upload build as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: signed-builds
+        path: |
+          openssl-windows-x86_64
+          openssl-windows-i686
+  create-package:
     permissions:
       contents: write
-    needs: [build-windows-i686, build-windows-x86_64]
+    needs: [build-windows-i686, build-windows-x86_64, sign-builds]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -75,15 +101,18 @@ jobs:
     - name: Get current version
       id: version
       run: echo "current=$(git describe --tags)" >> "$GITHUB_OUTPUT"
-    - name: Download all builds
+    - name: Download builds
       uses: actions/download-artifact@v3
+      with:
+        name: signed-builds
+        path: signed-builds
     - name: Package builds
       run: |
         ls -R
-        zip -r ${{ steps.version.outputs.current }}-windows-i686-lib.zip openssl-windows-i686
-        zip -r ${{ steps.version.outputs.current }}-windows-x86_64-lib.zip openssl-windows-x86_64
-        zip -r -j ${{ steps.version.outputs.current }}-windows-i686.zip openssl-windows-i686/bin
-        zip -r -j ${{ steps.version.outputs.current }}-windows-x86_64.zip openssl-windows-x86_64/bin
+        zip -r ${{ steps.version.outputs.current }}-windows-i686-lib.zip signed-builds/openssl-windows-i686
+        zip -r ${{ steps.version.outputs.current }}-windows-x86_64-lib.zip signed-builds/openssl-windows-x86_64
+        zip -r -j ${{ steps.version.outputs.current }}-windows-i686.zip signed-builds/openssl-windows-i686/bin
+        zip -r -j ${{ steps.version.outputs.current }}-windows-x86_64.zip signed-builds/openssl-windows-x86_64/bin
     - name: Create GitHub release with packages
       uses: softprops/action-gh-release@v1
       with:
