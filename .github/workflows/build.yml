@@ -108,11 +108,11 @@ jobs:
         path: signed-builds
     - name: Package builds
       run: |
-        ls -R
-        zip -r ${{ steps.version.outputs.current }}-windows-i686-lib.zip signed-builds/openssl-windows-i686
-        zip -r ${{ steps.version.outputs.current }}-windows-x86_64-lib.zip signed-builds/openssl-windows-x86_64
-        zip -r -j ${{ steps.version.outputs.current }}-windows-i686.zip signed-builds/openssl-windows-i686/bin
-        zip -r -j ${{ steps.version.outputs.current }}-windows-x86_64.zip signed-builds/openssl-windows-x86_64/bin
+        cd signed-builds
+        zip -r ../${{ steps.version.outputs.current }}-windows-i686-lib.zip openssl-windows-i686
+        zip -r ../${{ steps.version.outputs.current }}-windows-x86_64-lib.zip openssl-windows-x86_64
+        zip -r -j ../${{ steps.version.outputs.current }}-windows-i686.zip openssl-windows-i686/bin
+        zip -r -j ../${{ steps.version.outputs.current }}-windows-x86_64.zip openssl-windows-x86_64/bin
     - name: Create GitHub release with packages
       uses: softprops/action-gh-release@v1
       with:
